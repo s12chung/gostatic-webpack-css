@@ -1,4 +1,5 @@
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
 const Generator = function (configDirname, filename, isProduction) {
     this.configDirname = configDirname;
@@ -10,13 +11,7 @@ Object.assign(Generator.prototype, {
     cssLoaders() {
         return [
             MiniCssExtractPlugin.loader,
-            {
-                loader: 'css-loader',
-                options: {
-                    minimize: this.isProduction,
-                    sourceMap: !this.isProduction
-                }
-            }
+            { loader: 'css-loader', options: { sourceMap: !this.isProduction } }
         ];
     },
 
@@ -36,12 +31,18 @@ Object.assign(Generator.prototype, {
     },
 
     extractPlugins() {
-        return [
+        let plugins = [
             new MiniCssExtractPlugin({
                 filename: this.filename + '.css',
                 chunkFilename: this.isProduction ? '[id]-[hash].css' : '[id].css'
             })
         ];
+        if (this.isProduction) {
+            return plugins.concat([
+                new OptimizeCssAssetsPlugin({})
+            ]);
+        }
+        return plugins;
     }
 });
 
